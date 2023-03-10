@@ -33,11 +33,11 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:10001/eureka/ # url d'accès à l'annuaire
   # Ajout métadonnée dans Eureka pour que Prometheus puisse déterminer le chemin vers les métriques
- # instance:
- #   metadata-map:
- #     prometheus.scrape: "true"
- #     prometheus.path: "/actuator/prometheus"
- #     prometheus.port: "${management.server.port}"
+  instance:
+    metadata-map:
+      prometheus.scrape: "true"
+      prometheus.path: "/actuator/prometheus"
+      prometheus.port: "${management.server.port}"
 # Configuration du log.
 logging:
   level:
