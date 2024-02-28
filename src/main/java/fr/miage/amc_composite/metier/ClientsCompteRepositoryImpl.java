@@ -30,22 +30,29 @@ public class ClientsCompteRepositoryImpl implements ClientsCompteRepository {
         logger.info("On a 1 demande");
         logger.info("On envoie la demande au service client");
 
-        // On récupère 1 objet client
-        Client c=this.clientclients.getClient(idclient);
-        logger.info("On a recue la réponse client : {}", c);
+        try {
+            // On récupère 1 objet client
+            Client c = this.clientclients.getClient(idclient);
+            logger.info("On a recue la réponse client : {}", c);
 
-        // On récupère la liste des comptes pour 1 client donné
-        logger.info("On envoie la demande au service compte");
-        List<Compte> cpts = this.clientcomptes.getComptes(c.getId());
-        logger.info("On a recue la réponse compte : {}", c);
+            // On récupère la liste des comptes pour 1 client donné
+            logger.info("On envoie la demande au service compte");
+            List<Compte> cpts = this.clientcomptes.getComptes(c.getId());
+            logger.info("On a recue la réponse compte : {}", c);
 
-        // On forge la réponse
-        ClientWithCompte cwc = new ClientWithCompte();
-        cwc.setId(c.getId());
-        cwc.setNom(c.getNom());
-        cwc.setPrenom(c.getPrenom());
-        cwc.setComptes(cpts);
-        return cwc;
+            // On forge la réponse
+            ClientWithCompte cwc = new ClientWithCompte();
+            cwc.setId(c.getId());
+            cwc.setNom(c.getNom());
+            cwc.setPrenom(c.getPrenom());
+            cwc.setComptes(cpts);
+            return cwc;
+        } catch(feign.FeignException feignException) {
+            return new ClientWithCompte();
+        }
+
+
+
     }
 
 }
