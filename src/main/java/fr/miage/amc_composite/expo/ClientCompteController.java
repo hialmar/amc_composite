@@ -6,10 +6,7 @@ import fr.miage.amc_composite.transientObj.ClientWithCompte;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Service d'exposition REST des comptes-clients.
@@ -35,9 +32,9 @@ public class ClientCompteController {
      * @return  converti en JSON
      */
     @GetMapping("{id}")
-    public ClientWithCompte getClient(@PathVariable("id") Long id) {
+    public ClientWithCompte getClient(@PathVariable("id") Long id, @RequestHeader("Authorization") String bearerToken) {
         logger.info("ClientComptes : demande récup comptes d'un client avec id:{}", id);
-        ClientWithCompte c = clientsCompteRepository.getClientWithComptes(id);
+        ClientWithCompte c = clientsCompteRepository.getClientWithComptes(id, bearerToken);
         logger.info("ClientComptes : demande récup comptes client:{}", c);
         return c;
     }

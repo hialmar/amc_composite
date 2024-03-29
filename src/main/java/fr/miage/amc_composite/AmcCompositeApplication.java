@@ -13,13 +13,12 @@ import org.springframework.http.server.observation.ServerRequestObservationConte
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.AbstractOAuth2Token;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+import java.util.logging.Logger;
 
 @SpringBootApplication
 // Activation enregistrement Annuaire
@@ -29,6 +28,8 @@ import org.springframework.web.client.RestTemplate;
 // Activation LoadBalancer
 @EnableMethodSecurity(prePostEnabled = true)
 public class AmcCompositeApplication {
+
+    Logger logger = Logger.getLogger(AmcCompositeApplication.class.getName());
 
     public static void main(String[] args) {
         SpringApplication.run(AmcCompositeApplication.class, args);
@@ -53,9 +54,8 @@ public class AmcCompositeApplication {
     // ET LA
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        Object AbstractHttpConfigurer;
         http
-                .csrf(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
@@ -71,32 +71,5 @@ public class AmcCompositeApplication {
         return http.build();
     }
 
-
-//    @Bean
-//    public WebClient rest() {
-//        return WebClient.builder()
-//                .filter(new ServletBearerExchangeFilterFunction())
-//                .build();
-//    }
-
-    @Bean
-    RestTemplate rest() {
-        RestTemplate rest = new RestTemplate();
-        rest.getInterceptors().add((request, body, execution) -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null) {
-                return execution.execute(request, body);
-            }
-
-            if (!(authentication.getCredentials() instanceof AbstractOAuth2Token)) {
-                return execution.execute(request, body);
-            }
-
-            AbstractOAuth2Token token = (AbstractOAuth2Token) authentication.getCredentials();
-            request.getHeaders().setBearerAuth(token.getTokenValue());
-            return execution.execute(request, body);
-        });
-        return rest;
-    }
 
 }

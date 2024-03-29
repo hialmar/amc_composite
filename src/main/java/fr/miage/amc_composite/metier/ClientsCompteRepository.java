@@ -8,6 +8,6 @@ import fr.miage.amc_composite.transientObj.ClientWithCompte;
  */
 public interface ClientsCompteRepository {
 
-    ClientWithCompte getClientWithComptes(Long idclient);
+    ClientWithCompte getClientWithComptes(Long idclient, String bearerToken);
 
 }

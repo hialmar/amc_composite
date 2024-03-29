@@ -26,18 +26,19 @@ public class ClientsCompteRepositoryImpl implements ClientsCompteRepository {
 
     // On va interroger successivement les 2 micro-services Client et Comptes
     @Override
-    public ClientWithCompte getClientWithComptes(Long idclient) {
+    public ClientWithCompte getClientWithComptes(Long idclient, String bearerToken) {
         logger.info("On a 1 demande");
         logger.info("On envoie la demande au service client");
+        logger.info("Token "+bearerToken);
 
         try {
             // On récupère 1 objet client
-            Client c = this.clientclients.getClient(idclient);
+            Client c = this.clientclients.getClient(idclient, bearerToken);
             logger.info("On a recue la réponse client : {}", c);
 
             // On récupère la liste des comptes pour 1 client donné
             logger.info("On envoie la demande au service compte");
-            List<Compte> cpts = this.clientcomptes.getComptes(c.getId());
+            List<Compte> cpts = this.clientcomptes.getComptes(c.getId(), bearerToken);
             logger.info("On a recue la réponse compte : {}", c);
 
             // On forge la réponse
