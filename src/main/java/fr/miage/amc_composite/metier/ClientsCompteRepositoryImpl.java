@@ -48,6 +48,7 @@ public class ClientsCompteRepositoryImpl implements ClientsCompteRepository {
             cwc.setComptes(cpts);
             return cwc;
         } catch(feign.FeignException feignException) {
+            logger.warn(feignException.getLocalizedMessage());
             return new ClientWithCompte();
         }
 

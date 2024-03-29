@@ -1,5 +1,6 @@
 package fr.miage.amc_composite;
 
+import com.okta.spring.boot.oauth.Okta;
 import io.micrometer.observation.ObservationRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,9 +8,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.server.observation.ServerRequestObservationContext;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.AbstractOAuth2Token;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 // Activation enregistrement Annuaire
@@ -17,6 +27,7 @@ import org.springframework.util.PathMatcher;
 // Activation et auto-confoguiration de clients Feign
 @EnableFeignClients
 // Activation LoadBalancer
+@EnableMethodSecurity(prePostEnabled = true)
 public class AmcCompositeApplication {
 
     public static void main(String[] args) {
@@ -36,6 +47,56 @@ public class AmcCompositeApplication {
             }
         });
         return observationRegistry;
+    }
+
+
+    // ET LA
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        Object AbstractHttpConfigurer;
+        http
+                .csrf(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()));
+
+        // process CORS annotations
+        http.cors(Customizer.withDefaults());
+
+        // force a non-empty response body for 401's to make the response more browser friendly
+        Okta.configureResourceServer401ResponseBody(http);
+
+        return http.build();
+    }
+
+
+//    @Bean
+//    public WebClient rest() {
+//        return WebClient.builder()
+//                .filter(new ServletBearerExchangeFilterFunction())
+//                .build();
+//    }
+
+    @Bean
+    RestTemplate rest() {
+        RestTemplate rest = new RestTemplate();
+        rest.getInterceptors().add((request, body, execution) -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null) {
+                return execution.execute(request, body);
+            }
+
+            if (!(authentication.getCredentials() instanceof AbstractOAuth2Token)) {
+                return execution.execute(request, body);
+            }
+
+            AbstractOAuth2Token token = (AbstractOAuth2Token) authentication.getCredentials();
+            request.getHeaders().setBearerAuth(token.getTokenValue());
+            return execution.execute(request, body);
+        });
+        return rest;
     }
 
 }

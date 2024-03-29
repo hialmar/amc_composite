@@ -1,0 +1,14 @@
+# Proprietes de l'application
+spring:
+  application:
+    name: amcclients
+  profiles:
+    active: dev
+  cloud:
+    config:
+      enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: test
